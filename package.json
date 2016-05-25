@@ -1,9 +1,0 @@
-{
-  "name": "nodejsKinect",
-  "version": "0.0.1",
-  "devDependencies": {
-    "grunt": "~0.4.2",
-    "grunt-nw-builder": "^2.0.0",
-    "grunt-open": "^0.2.3"
-  }
-}
