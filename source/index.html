@@ -1,37 +1,119 @@
 <html>
+  <head>
+    <style>
+      canvas {
+        border: 1px solid #000;
+      }
+    </style>
+  </head>
   <body>
     test
 
+    <button id="start">Start</button>
+    <button id="start2">Start2</button>
+
+
+    <button id="toggleFeedButton" disabled="disabled">Stop Video</button>
+    <canvas id="outputCanvas" width="800" height="600"></canvas>
+
+
     <script>
 
-    var Kinect2 = require('kinect2');
 
-    var kinect = new Kinect2();
+    window.document.getElementById('start').addEventListener('click', function () {
+      var Kinect2 = require('kinect2');
 
-    //console.log(kinect);
+      var kinect = new Kinect2();
 
-    if(kinect.open()) {
-    	console.log("Kinect Opened");
-    	//listen for body frames
-    	kinect.on('bodyFrame', function(bodyFrame){
-    		for(var i = 0;  i < bodyFrame.bodies.length; i++) {
-    			if(bodyFrame.bodies[i].tracked) {
-    				console.log(bodyFrame.bodies[i]);
-    			}
-    		}
-    	});
+      console.log(kinect);
 
-    	//request body frames
-    	kinect.openBodyReader();
+      if(kinect.open()) {
+        console.log("Kinect Opened");
+        //listen for body frames
+        kinect.on('bodyFrame', function(bodyFrame){
+          console.log('body frame....');
+          for(var i = 0;  i < bodyFrame.bodies.length; i++) {
+            if(bodyFrame.bodies[i].tracked) {
+              console.log(bodyFrame.bodies[i]);
+            }
+          }
+        });
 
-    	//close the kinect after 5 seconds
-    	setTimeout(function(){
-    		kinect.close();
-    		console.log("Kinect Closed");
-    	}, 5000);
-    }
+        //request body frames
+        kinect.openBodyReader();
 
-  
+        //close the kinect after 5 seconds
+        setTimeout(function(){
+          kinect.close();
+          console.log("Kinect Closed");
+        }, 5000);
+      }
+    });
+
+
+    window.document.getElementById('start2').addEventListener('click', function () {
+
+
+
+        var Kinect2 = require('kinect2');
+        var kinect = new Kinect2();
+
+        var canvas = document.getElementById('outputCanvas');
+        var ctx = canvas.getContext('2d');
+        var imageData = ctx.createImageData(canvas.width, canvas.height);
+        var imageDataSize = imageData.data.length;
+        var imageDataArray = imageData.data;
+
+        var toggleFeedButton = document.getElementById('toggleFeedButton');
+
+        var feedOpen = false;
+        var processing = false;
+
+        function setFeedOpen(value) {
+          if(value !== feedOpen) {
+            feedOpen = value;
+            if(feedOpen) {
+              toggleFeedButton.innerHTML = 'Stop Video';
+              kinect.openColorReader();
+            } else {
+              toggleFeedButton.innerHTML = 'Start Video';
+              kinect.closeColorReader();
+            }
+          }
+        }
+
+        if(kinect.open()) {
+          console.log("Kinect Opened");
+          kinect.on('colorFrame', function(newPixelData){
+            console.log("colorFrame....");
+            if(processing) {
+              return;
+            }
+            processing = true;
+            for (var i = 0; i < imageDataSize; i++) {
+              imageDataArray[i] = newPixelData[i];
+            }
+            ctx.putImageData(imageData, 0, 0);
+            processing = false;
+            console.log("colorFrame....DONE !");
+          });
+
+          toggleFeedButton.addEventListener('click', function(){
+            console.log("click....");
+            setFeedOpen(!feedOpen);
+          });
+
+          toggleFeedButton.removeAttribute('disabled');
+
+          setFeedOpen(true);
+        }
+
+
+    });
+
+
+
+
     </script>
   </body>
 </html>
